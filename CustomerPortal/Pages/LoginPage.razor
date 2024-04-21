@@ -1,0 +1,104 @@
+﻿@page "/login"
+@layout EmptyLayout
+@inject IAccountService _accountService
+@inject ISnackbar Snackbar;
+@inject NavigationManager NavigationManager
+@inject ITokenService TokenService
+@inject IUserClaimsLocalStorageService _userClaimsStorageService
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800,900&display=swap">
+    </head>
+    <body>
+        <section>
+            <div class="imgBx">
+                <img src="/images/LoginImage.jpg" />
+            </div>
+            <div class="contentBx">
+                <div class="formBx">
+                    <h2>Login</h2>
+                    <form>
+                        <div class="inputBx">
+                            <span>Account No</span>
+                            <input type="text" @bind-value="_accountNumber" name="" />
+                        </div>
+                    <div class="inputBx">
+                        <span>Password</span>
+                        <input type="password" @bind-value="_password" name="" />
+                    </div>
+                    <div class="remember">
+                       <label><input type="checkbox" name="">Remeber me</label>
+                    </div>
+                    <div class="inputBx">
+                        <input type="button" style="color:lightpink" value="Validate" @onclick="Login" name="" />
+                    </div>
+                    <div class="inputBx">
+                        <p>Don't have an account? <NavLink href="/create-account">Create Account</NavLink></p>
+                    </div>
+                    <div class="inputBx">
+                        <p>Do you have an account? <NavLink href="/activateaccount">Activate Account</NavLink></p>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </body>
+</html>
+
+
+@code{
+
+    private string _password = "";
+
+    private string _accountNumber = "";
+
+    AccountInfo accountInfo = new AccountInfo();
+
+
+    public async void Login()
+    {
+        var login = await _accountService.Login(_accountNumber, _password);
+
+        if (login.Success)
+        {
+            Snackbar.Add("Login Successful", Severity.Info);
+
+            await TokenService.SetTokenAsync(login.Message);
+
+            var getaccountInfo = await _accountService.GetAccountDetails(_accountNumber);
+
+            if (getaccountInfo.Success)
+            {
+                accountInfo.AccountBalance = getaccountInfo.Data.AccountBalance;
+                accountInfo.AccountName = getaccountInfo.Data.AccountName;
+                accountInfo.AccountNo = getaccountInfo.Data.AccountNo;
+                accountInfo.AccountType = getaccountInfo.Data.AccountType;
+                SetAccountInfo(accountInfo);
+
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                Snackbar.Add("User Validation Failed", Severity.Error);
+            }      
+
+            
+        }
+        else
+        {
+            Snackbar.Add(login.Message, Severity.Error);
+        }
+    }
+
+    public void SetAccountInfo(AccountInfo account)
+    {
+        _userClaimsStorageService.SetAccountInfoAsync(accountInfo);
+    }
+
+}

@@ -1,0 +1,225 @@
+﻿@page "/current"
+
+@using CustomerPortal.Models.Request
+@using CustomerPortal.Account
+@inject IAccountService _accountService;
+@inject NavigationManager NavigationManager
+@inherits EmptyLayout;
+@inject ISnackbar Snackbar;
+
+<section>
+    <div class="contentBx">
+        <div class="card">
+            <div class="card-body">
+                <div class="formBx">
+                    <h2>Account Information</h2>
+                    <form>
+                        @if (currentStep == 1)
+                        {
+                            <div>
+                                <h4>Personal Information</h4>
+                                <div class="input-row">
+                                    <div class="form-group">
+                                        <label for="firstName">First Name:</label>
+                                        <input id="firstName" type="text" class="form-control form-control-lg" @bind="request.FirstName" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="lastName">Last Name:</label>
+                                        <input id="lastName" type="text" class="form-control form-control-lg" @bind="request.LastName" />
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="form-group">
+                                        <label for="otherName">Other Name:</label>
+                                        <input id="otherName" type="text" class="form-control form-control-lg" @bind="request.MiddleName" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email:</label>
+                                        <input id="email" type="email" class="form-control form-control-lg" @bind="request.Email" />
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="form-group">
+                                        <label for="phoneNumber">Phone Number:</label>
+                                        <input id="phoneNumber" type="text" class="form-control form-control-lg" @bind="request.Phone" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="maritalStatus">Marital Status:</label>
+                                        <select class="form-control form-control-lg custom-select" @bind="request.MaritalStatus">
+                                            <option value="">--Select--</option>
+                                            <option value="Single">Single</option>
+                                            <option value="Married">Married</option>
+                                            <option value="Divorced">Divorced</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="form-group">
+                                        <label for="dateOfBirth">Date Of Birth:</label>
+                                        <input id="dateOfBirth" type="date" class="form-control form-control-lg" @bind="request.DOB" />
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-primary mt-3" @onclick="NextStep">Next</button>
+                            </div>
+                        }
+                        @if (currentStep == 2)
+                        {
+                            <div>
+                                <h4>Address Information</h4>
+                                <div class="input-row">
+                                    <div class="form-group">
+                                        <label for="country">Country:</label>
+                                        <input id="country" type="text" class="form-control form-control-lg" @bind="request.Country" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="region">Region:</label>
+                                        <input id="region" type="text" class="form-control form-control-lg" @bind="request.Region" />
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="form-group">
+                                        <label for="city">City:</label>
+                                        <input id="city" type="text" class="form-control form-control-lg" @bind="request.City" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="streetName">Street Name:</label>
+                                        <input id="streetName" type="text" class="form-control form-control-lg" @bind="address.StreetName" />
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="form-group">
+                                        <label for="houseNo">House No:</label>
+                                        <input id="houseNo" type="text" class="form-control form-control-lg" @bind="address.HouseNo" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="postalCode">Postal Code:</label>
+                                        <input id="postalCode" type="text" class="form-control form-control-lg" @bind="address.PostalCode" />
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary mr-3" @onclick="PreviousStep">Previous</button>
+                                <button type="button" class="btn btn-primary" @onclick="NextStep">Next</button>
+                            </div>
+                        }
+                        else if (currentStep == 3)
+                        {
+                            <div>
+                                <h4>Identity Information</h4>
+                                <div class="input-row">
+                                    <div class="form-group">
+                                        <label for="identificationType">Identification Type:</label>
+                                        <select class="form-control form-control-lg custom-select" @bind="request.IdentificationType">
+                                            <option value="">--Select--</option>
+                                            <option value="NIN">NIN</option>
+                                            <option value="Passport">Passport</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="identificationNumber">Identification Number:</label>
+                                        <input id="identificationNumber" type="text" class="form-control form-control-lg" @bind="request.IdNo" />
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="form-group">
+                                        <label for="bvn">BVN:</label>
+                                        <input id="bvn" type="text" class="form-control form-control-lg" @bind="request.BVN" />
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary mr-3" @onclick="PreviousStep">Previous</button>
+                                <button type="button" class="btn btn-primary" @onclick="SubmitForm">Submit</button>
+                            </div>
+                        }
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+
+    
+    double intervalBeforeMsgClose = 2000;
+    private int currentStep = 1;
+    CreateAccountRequest request = new CreateAccountRequest();
+    AddressInfornametion address = new AddressInfornametion();
+    SuccessStatus successStatus = new SuccessStatus();
+
+    private void NextStep()
+    {
+        var isValid = true;
+
+        switch (currentStep)
+        {
+            case 1:
+                isValid = ValidateAccountRequest();
+                break;
+            case 2:
+                isValid = ValidateAccountRequest() && ValidateAddressInformation();
+                break;
+            case 3:
+                isValid = ValidateAccountRequest();
+                break;
+        }
+
+        if (isValid)
+        {
+            currentStep++;
+        }
+        else
+        {
+            Snackbar.Add("All Informations are required", Severity.Error);
+        }
+    }
+
+    private bool ValidateAccountRequest()
+    {
+        var validationContext = new ValidationContext(request, serviceProvider: null, items: null);
+        var validationResults = new List<ValidationResult>();
+
+        return Validator.TryValidateObject(request, validationContext, validationResults, true);
+    }
+
+    private bool ValidateAddressInformation()
+    {
+        var validationContext = new ValidationContext(address, serviceProvider: null, items: null);
+        var validationResults = new List<ValidationResult>();
+
+        return Validator.TryValidateObject(address, validationContext, validationResults, true);
+    }
+
+    private void PreviousStep()
+    {
+        if (currentStep > 1)
+        {
+            currentStep--;
+        }
+    }
+
+    private async void SubmitForm()
+    {
+        request.AccountType = "Savings";
+        request.AccountName = $"{request.FirstName} {request.LastName}";
+        request.Address = $"{request.Country} {request.Region} {request.City} {address.StreetName} {address.HouseNo} {address.PostalCode}";
+        request.CurrencyCode = "NGN";
+        request.DateOnboarded = DateTime.UtcNow;
+        request.HasBvn = true;
+        request.PostalCode = address.PostalCode;
+        request.DOB = DateTime.Now;
+        var response = await _accountService.CreateAccountAsync(request);
+        if (response != null && response.Success)
+        {
+
+            Snackbar.Add("Account Created Successfully", Severity.Info);
+
+            await Task.Delay(4000); 
+
+            NavigationManager.NavigateTo($"/createpassword?accountNumber={response.Data.AccountNo}");
+        }
+        else
+        {
+            Snackbar.Add(response.Message, Severity.Error);
+        }
+    }
+
+}

@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Notification</title>
+    <style>
+        /* Reset styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header img {
+            max-width: 200px;
+            margin-bottom: 10px;
+        }
+
+        /* Content */
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="bank_logo.png" alt="Bank Logo">
+        </div>
+        <div class="content">
+            <h2>Transaction Notification</h2>
+            <p>Hello {recipientName},</p>
+            <p>This is to inform you about a recent transaction on your account.</p>
+            <p><strong>Transaction Details:</strong></p>
+            <ul>
+                <li><strong>Date:</strong> {TransactionDate}</li>
+                <li><strong>Amount:</strong> {TransactionAmount}</li>
+                <li><strong>Type:</strong> {TransactionType}</li>
+                <li><strong>Description:</strong> {TransactionDescription}</li>
+            </ul>
+            <p>If you have any questions or concerns, please contact our customer support team.</p>
+            <p>Thank you for choosing Bloom Bank.</p>
+        </div>
+        <div class="footer">
+            &copy; 2024 BloomBank. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

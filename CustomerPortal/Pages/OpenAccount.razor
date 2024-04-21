@@ -1,0 +1,82 @@
+﻿@page "/openaccount"
+@layout EmptyLayout
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+
+<section>
+    <div class="imgBx">
+        <img src="/images/LoginImage.jpg" />
+    </div>
+    <div class="contentBx">
+        <div class="card">
+            <div class="card-body">
+                @if (string.IsNullOrEmpty(selectedAccountType))
+                {
+                    <div class="formBx">
+                        <h2>Select Account Type</h2>
+                        <form>
+                            <div class="inputBx">
+                                <span>Account Type</span>
+                                <select @onchange="HandleAccountTypeSelection" class="custom-select">
+                                    <option value="">--Select--</option>
+                                    <option value="Savings">Savings</option>
+                                    <option value="Corporate">Corporate</option>
+                                    <option value="Current">Current</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+
+    private string selectedAccountType;
+    
+    protected override void OnInitialized()
+    {
+        Snackbar.Add("Select Account Type", Severity.Info);
+    }
+
+
+    private void HandleAccountTypeSelection(ChangeEventArgs args)
+    {
+        selectedAccountType = args.Value.ToString();
+
+        // Automatically navigate based on the selected account type
+        switch (selectedAccountType)
+        {
+            case "Savings":
+                NavigateToSavingsPage();
+                break;
+            case "Corporate":
+                NavigateToCorporatePage();
+                break;
+            case "Current":
+                NavigateToCurrentPage();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void NavigateToSavingsPage()
+    {
+        NavigationManager.NavigateTo("/savings");
+    }
+
+    private void NavigateToCorporatePage()
+    {
+        NavigationManager.NavigateTo("/corporate");
+    }
+
+    private void NavigateToCurrentPage()
+    {
+        NavigationManager.NavigateTo("/current");
+    }
+}
+

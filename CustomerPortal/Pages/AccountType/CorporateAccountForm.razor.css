@@ -1,0 +1,154 @@
+﻿* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    background: white;
+}
+
+section {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    background: white;
+}
+
+    section .contentBx {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%
+    }
+
+        section .contentBx .formBx h2 {
+            color: #607d8b;
+            font-weight: 600;
+            font-size: 1.5em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            border-bottom: 4px solid #ff4584;
+            display: inline-block;
+            letter-spacing: 1px;
+        }
+
+
+
+/* Card Styling */
+.card {
+    width: 80%;
+    max-width: 600px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.card-body {
+    padding: 40px;
+}
+
+.contentBx {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.card {
+    width: 200vh;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.formBx {
+    width: auto
+}
+
+h2 {
+    color: #607d8b;
+    font-weight: 600;
+    font-size: 1.5em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    border-bottom: 4px solid #ff4584;
+    display: inline-block;
+    letter-spacing: 1px;
+}
+
+h4 {
+    color: #607d8b;
+    font-weight: 600;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+.input-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    flex: 1;
+    margin-right: 10px;
+}
+
+label {
+    font-weight: 500;
+    color: #455a64;
+}
+
+input[type="text"],
+input[type="email"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #ff4584;
+    color: #fff;
+    border: none;
+    outline: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-secondary {
+    background-color: #607d8b;
+    color: #fff;
+    border: none;
+    outline: none;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+
+.custom-select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ced4da;
+    border-radius: 30px;
+    background-color: white;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+    .custom-select option {
+        padding: 10px;
+        font-size: 16px;
+    }

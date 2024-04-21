@@ -1,0 +1,714 @@
+﻿@page "/"
+@layout Dashboard
+@using System.Net.Http.Json
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+@inject IJSRuntime JSRuntime
+@inject ITokenService TokenService
+@inject NavigationManager Navigation
+@inject ITokenService TokenService
+@inject IAccountService AccountService
+@inject IUserClaimsLocalStorageService _userClaimsStorageService
+@using System.Globalization
+
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800,900&display=swap">
+</head>
+<body>
+    <MudLayout>
+        <MudAppBar Variant="Variant.Filled" Color="Color.Dark" Elevation="1">
+            <div class="logo-container">
+                <span class="logo-text">Bloom<span class="highlight">Bank</span></span>
+            </div>
+            <MudSpacer />
+            <MudMenu Label="Settings" Icon="@Icons.Material.Outlined.Person" Color="Color.Secondary">
+                <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
+            </MudMenu>
+            <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" />
+        </MudAppBar>
+        <MudMainContent Class="pt-16 px-16">
+            <div class="container">
+                <!-- Account Balance Card Section -->
+                <div class="account-card-container">
+                    <!-- First Card: Account Balance -->
+                    <div class="row">
+                        <MudCard Class="account-card">
+                            <div class="card-header">
+                                <h3>Account Balance</h3>
+                            </div>
+                            <div class="card-body">
+
+                                <p class="balance-amount">@DisplayAccountBalance.ToString("C", new CultureInfo("ha-Ng"))</p>
+                            </div>
+                        </MudCard>
+                        <MudCard Class="additional-card bank-card">
+                            <div class="card-header">
+                                <h3>Bank Account Details</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="account-info">
+                                    <p class="account-number">Account Number: @DisplayAccountNo</p>
+                                    <p class="account-number">Account Name: @DisplayAccountName</p>
+                                    <p class="account-type">Account Type: @DisplayAccountType</p>
+                                </div>
+                            </div>
+                        </MudCard>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;"></div>
+
+                <div class="service-cards">
+                    <!-- Card 1: Bank Transfer -->
+                    <MudLink Class="service-link" @onclick="() => StartBankTransfer()">
+                        <MudCard Class="service-card">
+                            <div class="card-header">
+                                <h3>Bank Transfer</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Transfer money securely between accounts.</p>
+                            </div>
+                        </MudCard>
+                    </MudLink>
+
+                    <!-- Card 2: Airtime Recharge -->
+                    <MudLink Href="#" Class="service-link" @onclick="() => AirtimeProcess()">
+                        <MudCard Class="service-card">
+                            <div class="card-header">
+                                <h3>Airtime Recharge</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Top up your mobile phone credit instantly.</p>
+                            </div>
+                        </MudCard>
+                    </MudLink>
+
+                    <!-- Card 3: Bill Payment -->
+                    <MudLink Href="#" Class="service-link" @onclick="() => BillsPaymentProcess()">
+                        <MudCard Class="service-card">
+                            <div class="card-header">
+                                <h3>Bill Payment</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Pay utility bills and services conveniently.</p>
+                            </div>
+                        </MudCard>
+                    </MudLink>
+
+                    <!-- Card 4: Card Request -->
+                    <MudLink Href="#" Class="service-link" @onclick="() => BillsPaymentProcess()">
+                        <MudCard Class="service-card">
+                            <div class="card-header">
+                                <h3>Card Request</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Apply for a new debit or credit card.</p>
+                            </div>
+                        </MudCard>
+                    </MudLink>
+                </div>
+
+                <!-- Add spacing between sections -->
+                <div style="margin-top: 20px;"></div>
+
+                <!-- Transaction Table Section -->
+                <div class="transaction-table">
+                    <MudTable Items="@Elements" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<Transactions, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Transactions</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                        </ToolBarContent>
+                        <HeaderContent>
+                            <MudTh>Transaction Id</MudTh>
+                            <MudTh>Amount</MudTh>
+                            <MudTh>Transaction Date</MudTh>
+                            <MudTh>Beneficiary Bank</MudTh>
+                            <MudTh>Beneficiary Name</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Transaction Id">@context.TranstiondId</MudTd>
+                                <MudTd DataLabel="Amount">@context.Amount</MudTd>
+                                <MudTd DataLabel="Transaction Date">@context.TransactionDate</MudTd>
+                                <MudTd DataLabel="Beneficiary Bank">@context.BeneficiaryBank</MudTd>
+                                <MudTd DataLabel="Beneficiary Name">@context.BeneficiaryName</MudTd>
+                            </RowTemplate>
+                            <PagerContent>
+                                <MudTablePager />
+                            </PagerContent>
+                        </MudTable>
+                    </div>
+                </div>
+                <div id="bankTransferDialog" class="dialog-container" style="display: none;">
+                    <div class="dialog-content">
+                        @if (IsBankTransfer)
+                    {
+                        <h3>Bank Transfer</h3>
+                        <div class="form-group">
+                            <label for="accountNumber">Account Number</label>
+                            <input id="accountNumber" type="text" class="form-control" @bind="AccountNumber" />
+                        </div>
+                        <div class="form-group">
+                            <label for="accountName">Account Name</label>
+                            <input id="accountName" type="text" class="form-control" @bind="AccountName" />
+                        </div>
+                        <div class="form-group">
+                            <label for="transferAmount">Amount</label>
+                            <input id="transferAmount" type="number" class="form-control" @bind="TransferAmount" />
+                        </div>
+                        <!-- Buttons for actions -->
+                        <div class="button-group">
+                            <MudButton Variant="Variant.Filled" @onclick="ProcessTransfer" Color="Color.Dark">Transfer</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" @onclick="CloseBankTransferDialog">Cancel</MudButton>
+                        </div>
+                    }
+                    @if (IsAirtime)
+                    {
+                        <h3>Airtime Recharge</h3>
+                        <div class="form-group">
+                            <label for="accountNumber">Phone Number</label>
+                            <input id="accountNumber" type="text" class="form-control" @bind="AccountNumber" />
+                        </div>
+                        <div class="form-group">
+                            <label for="accountName">Service Provider</label>
+                            <input id="accountName" type="text" class="form-control" @bind="AccountName" />
+                        </div>
+                        <div class="form-group">
+                            <label for="transferAmount">Amount</label>
+                            <input id="transferAmount" type="number" class="form-control" @bind="TransferAmount" />
+                        </div>
+                        <!-- Buttons for actions -->
+                        <div class="button-group">
+                            <MudButton Variant="Variant.Filled" @onclick="StartBankTransfer" Color="Color.Dark">Submit</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" @onclick="CloseBankTransferDialog">Cancel</MudButton>
+                        </div>
+                    }
+                    @if (IsCardRequest)
+                    {
+                        <h3>Card Request</h3>
+                        <div class="form-group">
+                            <label for="accountNumber">Account Number</label>
+                            <input id="accountNumber" type="text" class="form-control" @bind="AccountNumber" />
+                        </div>
+                        <div class="form-group">
+                            <label for="accountName">Card Type</label>
+                            <input id="accountName" type="text" class="form-control" @bind="AccountName" />
+                        </div>
+                        <!-- Buttons for actions -->
+                        <div class="button-group">
+                            <MudButton Variant="Variant.Filled" Color="Color.Dark">Submit</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" @onclick="CloseBankTransferDialog">Cancel</MudButton>
+                        </div>
+                    }
+                    @if (IsBillsPayment)
+                    {
+                        <h3>Bill Payment</h3>
+                        <div class="form-group">
+                            <label for="accountNumber">Bill Type</label>
+                            <input id="accountNumber" type="text" class="form-control" @bind="AccountNumber" />
+                        </div>
+                        <div class="form-group">
+                            <label for="accountName">Bill Catergory</label>
+                            <input id="accountName" type="text" class="form-control" @bind="AccountName" />
+                        </div>
+                        <div class="form-group">
+                            <label for="transferAmount">Amount</label>
+                            <input id="transferAmount" type="number" class="form-control" @bind="TransferAmount" />
+                        </div>
+                        <!-- Buttons for actions -->
+                        <div class="button-group">
+                            <MudButton Variant="Variant.Filled" Color="Color.Dark">Submit</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" @onclick="CloseBankTransferDialog">Cancel</MudButton>
+                        </div>
+                    }
+                </div>
+            </div>
+            @if (IsTransferring)
+            {
+                <div class="progress-container">
+                    <div class="progress-indicator">
+                        <MudProgressCircular Color="Color.Dark" Style="height:90px;width:90px;" Indeterminate="true" />
+                    </div>
+                </div>
+            }
+        </MudMainContent>
+        <br />
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <p>&copy; 2024 BloomBank. All rights reserved.</p>
+                    <ul class="social-links">
+                        <li><a href="#"><img src="/Images/287739_facebook_icon.png" width="40" style="border-radius:40px;color:white" alt="Facebook" /></a></li>
+                        <li><a href="#"><img src="/Images/1159683_instagram_instagram logo_icon.png" width="40" style="border-radius:40px;color:white" alt="Instagram" /></a></li>
+                        <li><a href="#"><img src="/Images/5282548_play_player_video_youtube_youtuble logo_icon.png" alt="Linkdin" width="40" style="border-radius:40px;color:white" /></a></li>
+                    </ul>
+                </div>
+            </div>
+        </footer>
+    </MudLayout>
+</body>
+
+
+</html>
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<style>
+    /* Style for full-screen progress indicator container */
+    .progress-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+        z-index: 9999; /* Ensure it appears on top */
+    }
+
+    /* Style for MudProgressCircular within the container */
+    .progress-indicator {
+        height: 150px; /* Adjust height as desired */
+        width: 150px; /* Adjust width as desired */
+        display: flex;
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+        border-radius: 50%; /* Make it circular */
+        background-color: rgba(255, 255, 255, 0.8); /* White background with transparency */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Drop shadow effect */
+    }
+    /* Style for input elements */
+    input[type="text"],
+    input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        transition: border-color 0.3s ease; /* Add transition for smooth hover effect */
+    }
+
+        /* Hover effect for input elements */
+        input[type="text"]:hover,
+        input[type="number"]:hover {
+            border-color: #ffb6c1; /* Light pink border color on hover */
+        }
+    /* General CSS resets */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* Custom CSS for logo */
+    .logo-container {
+        display: flex;
+        align-items: center;
+        padding-left: 16px;
+    }
+
+    .logo-text {
+        font-size: 24px;
+        font-weight: bold;
+        color: #ffffff; /* White text */
+    }
+
+    .highlight {
+        color: lightpink; /* Pink text */
+    }
+
+    /* Custom CSS for cards */
+    .account-card-container {
+        display: flex;
+        justify-content: center; /* Center the row horizontally */
+        margin-top: 20px; /* Adjust top margin for spacing */
+    }
+
+    .row {
+        display: flex;
+        justify-content: space-between; /* Evenly space items within the row */
+        gap: 20px; /* Add spacing between cards */
+        width: 100%; /* Ensure row takes full width */
+    }
+
+    .account-card,
+    .additional-card {
+        width: 300px;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background-color: lightpink; /* Light pink background color */
+    }
+
+    .mud-input {
+        color: lightpink; /* Set the desired text color (e.g., red) */
+        /* Additional styling (e.g., background-color, border-color, etc.) */
+    }
+
+    .card-header h3 {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 12px;
+    }
+
+    .avatar img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%; /* Make the avatar image round */
+    }
+
+    .balance-amount {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-top: 8px;
+    }
+
+    .service-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .service-card {
+        padding: 16px;
+        border-radius: 8px;
+        background-color: lightpink; /* Pink background */
+        color: #ffffff; /* White text */
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .service-link {
+        text-decoration: none; /* Remove underline */
+        color: inherit; /* Use inherited color for text */
+    }
+
+    .service-card:hover {
+        transform: scale(1.05);
+    }
+
+    .transaction-table {
+        margin-top: 20px;
+    }
+
+        .transaction-table table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .transaction-table th,
+        .transaction-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .transaction-table th {
+            background-color: #f5f5f5; /* Light gray background for table header */
+            font-weight: bold;
+        }
+
+        .transaction-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9; /* Alternate row background color */
+        }
+
+    /* Custom App Bar styling */
+    .custom-app-bar {
+        background-color: #ff4584; /* Light pink background color */
+        color: #ffffff; /* White text color */
+    }
+
+    .dialog-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* semi-transparent background */
+        z-index: 9999;
+    }
+
+    .dialog-content {
+        background-color: #fff; /* white background for dialog content */
+        padding: 20px;
+        border-radius: 8px;
+        width: 80%; /* Adjust width as needed */
+        max-width: 400px; /* Max width of the dialog */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Drop shadow effect */
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: space-between; /* Distribute space between buttons */
+        margin-top: 20px; /* Add top margin for spacing */
+    }
+
+        .button-group > * {
+            flex: 1; /* Expand buttons to fill available space evenly */
+            margin: 0 5px; /* Add horizontal margin to buttons for spacing */
+        }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 10px 20px;
+        margin: 0 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .btn-primary {
+        background-color: #007bff; /* Primary button color */
+        color: #fff;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d; /* Secondary button color */
+        color: #fff;
+    }
+
+
+    /* Define styles for the footer */
+    .footer {
+        background-color: #333;
+        color: #fff;
+        padding: 20px 0;
+        text-align: center;
+    }
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .social-links {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .social-links {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .social-links li {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+            .social-links li:last-child {
+                margin-right: 0;
+            }
+
+    /* Style for social media icons */
+    .social-icon {
+        width: 40px; /* Adjust the width of the icon (e.g., 40px) */
+        height: auto; /* Maintain aspect ratio */
+        border-radius: 50%; /* Make the image round (for circular icons) */
+        transition: transform 0.3s ease; /* Add transition effect */
+    }
+
+    .social-links a:hover .social-icon {
+        transform: scale(1.2); /* Scale up the icon on hover */
+    }
+</style>
+
+@code {
+    private bool dense = true;
+    private bool hover = true;
+    private bool bordered = true;
+    private bool striped = true;
+    private string searchString1;
+    private Transactions selectedItem1;
+
+    private string AccountNumber { get; set; }
+    private string AccountName { get; set; }
+    private decimal TransferAmount { get; set; }
+    private string BankName { get; set; }
+
+
+    private bool IsAirtime = false;
+    private bool IsBankTransfer = false;
+    private bool IsCardRequest = false;
+    private bool IsBillsPayment = false;
+    private bool IsTransferring = false;
+
+
+    public string DisplayAccountName { get; set; }
+    public decimal DisplayAccountBalance { get; set; }
+    public string DisplayAccountNo { get; set; }
+    public string DisplayAccountType { get; set; }
+
+
+    private async Task Logout()
+    {
+        await TokenService.ClearToken();
+
+        Navigation.NavigateTo("/login"); 
+    }
+
+    private List<Transactions> Elements { get; set; }
+
+    protected async override void OnInitialized()
+    {
+        
+        IsTransferring = false;
+
+        Elements = new List<Transactions>
+        {
+            new Transactions { TranstiondId = 1, TransactionDate = "1 January 2024", Amount = "200000", BeneficiaryBank = "First Bank", BeneficiaryName = "Ajayi Samson" },
+            new Transactions { TranstiondId = 2, TransactionDate = "2 January 2024", Amount = "400000", BeneficiaryBank = "Sterling Bank", BeneficiaryName = "Ajayi Samson" },
+        };
+
+        var getaccountRecords = await _userClaimsStorageService.GetAccountInfoAsync();
+
+        if(getaccountRecords == null)
+        {
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            DisplayAccountBalance = getaccountRecords.AccountBalance;
+            DisplayAccountName = getaccountRecords.AccountName;
+            DisplayAccountNo = getaccountRecords.AccountNo;
+            DisplayAccountType = getaccountRecords.AccountType;
+        }
+
+        if (!await TokenService.TokenExistsAsync())
+        {
+            Navigation.NavigateTo("/login");
+        }
+
+        StateHasChanged();
+    }
+
+    public async Task GetCustomerProfile()
+    {
+        var accountprofile = await AccountService.GetAccountDetails(AccountNumber);
+    }
+
+    private bool FilterFunc1(Transactions element)
+    {
+        // Implement your custom filtering logic based on the search string
+        if (string.IsNullOrEmpty(searchString1))
+            return true;
+
+        return element.Amount?.Contains(searchString1, StringComparison.OrdinalIgnoreCase) == true
+            || element.BeneficiaryName?.Contains(searchString1, StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    public class Transactions
+    {
+        public int TranstiondId { get; set; }
+        public string TransactionDate { get; set; }
+        public string Amount { get; set; }
+        public string BeneficiaryName { get; set; }
+        public string BeneficiaryBank { get; set; }
+    }
+
+    public class ProfileInformation
+    {
+        public string AccountNumber { get; set; }
+        public string AccountName { get; set; }
+        public string AccountBalance { get; set; }
+    }
+
+    private void StartBankTransfer()
+    {
+        IsBankTransfer = true;
+        IsAirtime = false;
+        IsCardRequest = false;
+        IsBillsPayment = false;
+
+        OpenBankTransferDialog();
+    }
+
+    private void BillsPaymentProcess()
+    {
+        IsBillsPayment = true;
+        IsAirtime = false;
+        IsBankTransfer = false;
+        IsCardRequest = false;
+
+        OpenBankTransferDialog();
+    }
+
+    private void AirtimeProcess()
+    {
+        IsBillsPayment = false;
+        IsAirtime = true;
+        IsBankTransfer = false;
+        IsCardRequest = false;
+
+        OpenBankTransferDialog();
+    }
+
+    private void CardRequestProcess()
+    {
+        IsBillsPayment = false;
+        IsAirtime = false;
+        IsBankTransfer = false;
+        IsCardRequest = true;
+
+
+        OpenBankTransferDialog();
+    }
+
+    private async Task ProcessTransfer()
+    {
+        CloseBankTransferDialog();
+        // Show progress indicator
+        IsTransferring = true;
+
+        // Simulate transfer process (e.g., HTTP request, backend operation)
+        await Task.Delay(3000); // Placeholder for asynchronous operation
+
+        // After completion, hide progress indicator and close dialog
+        IsTransferring = false;
+        CloseBankTransferDialog();
+    }
+
+
+
+    private async void OpenBankTransferDialog()
+    {
+        await JSRuntime.InvokeVoidAsync("showDialog", "bankTransferDialog");
+    }
+
+    private async void CloseBankTransferDialog()
+    {
+        await JSRuntime.InvokeVoidAsync("hideDialog", "bankTransferDialog");
+    }
+}
+
+

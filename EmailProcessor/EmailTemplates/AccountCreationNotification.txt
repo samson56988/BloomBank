@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Opening Notification</title>
+    <style>
+        /* Reset styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header img {
+            max-width: 200px;
+            margin-bottom: 10px;
+        }
+
+        /* Content */
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="bank_logo.png" alt="Bank Logo">
+        </div>
+        <div class="content">
+            <h2>Account Opening Notification</h2>
+            <p>Hello {RecipientName},</p>
+            <p>We are delighted to inform you that your account with {Bank Name]} has been successfully opened.</p>
+            <p><strong>Your Account Details:</strong></p>
+            <ul>
+                <li><strong>Account Number:</strong> {AccountNumber}</li>
+            </ul>
+            <p>You can now log in to Bloom Bank's online portal to access a wide range of banking services.</p>
+            <p>Thank you for choosing [Bank Name].</p>
+        </div>
+        <div class="footer">
+            &copy; 2024 Bloom Bank. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

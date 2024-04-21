@@ -1,0 +1,6 @@
+@BloomUSSDAPI_HostAddress = http://localhost:5223
+
+GET {{BloomUSSDAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

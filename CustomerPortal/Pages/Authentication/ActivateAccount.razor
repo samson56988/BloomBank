@@ -1,0 +1,242 @@
+﻿@page "/activateaccount"
+@layout EmptyLayout
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IAccountService _accountService;
+
+<style>
+
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
+
+
+    section {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+    }
+
+
+
+        section .imgBx {
+            position: relative;
+            width: 50%;
+            height: 100%;
+        }
+
+            section .imgBx:before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(225deg,#e91e63,#03a9f4);
+                z-index: 1;
+                mix-blend-mode: screen;
+            }
+
+
+            section .imgBx img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover
+            }
+
+        section .contentBx {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 50%;
+            height: 100%
+        }
+
+            section .contentBx .formBx {
+                width: 50%;
+            }
+
+                section .contentBx .formBx h2 {
+                    color: #607d8b;
+                    font-weight: 600;
+                    font-size: 1.5em;
+                    text-transform: uppercase;
+                    margin-bottom: 20px;
+                    border-bottom: 4px solid #ff4584;
+                    display: inline-block;
+                    letter-spacing: 1px;
+                }
+
+                section .contentBx .formBx .inputBx {
+                    margin-bottom: 20px;
+                }
+
+                    section .contentBx .formBx .inputBx span {
+                        font-size: 16px;
+                        margin-bottom: 5px;
+                        display: inline-block;
+                        color: #607db8;
+                        font-weight: 300;
+                        font-size: 16px;
+                        letter-spacing: 1px;
+                    }
+
+                    section .contentBx .formBx .inputBx input {
+                        width: 100%;
+                        padding: 10px 20px;
+                        outline: none;
+                        font-weight: 400;
+                        border: 1px solid #607d8b;
+                        font-size: 16px;
+                        letter-spacing: 1px;
+                        color: #607d8b;
+                        background: transparent;
+                        border-radius: 30px;
+                    }
+
+
+                        section .contentBx .formBx .inputBx input[type="submit"] {
+                            background: #ff4584;
+                            color: #fff;
+                            outline: none;
+                            border: none;
+                            font-weight: 500;
+                            cursor: pointer;
+                        }
+
+
+                            section .contentBx .formBx .inputBx input[type="submit"]:hover {
+                                background: #f53677;
+                            }
+
+                section .contentBx .formBx .remember {
+                    margin-bottom: 10px;
+                    color: #607d8b;
+                    font-weight: 400;
+                    font-size: 14px;
+                }
+
+                section .contentBx .formBx .inputBx p {
+                    color: #607d8b;
+                }
+
+                    section .contentBx .formBx .inputBx p a {
+                        color: #ff4584;
+                    }
+
+</style>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activate Account</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800,900&display=swap">
+</head>
+<body>
+    <section>
+        <div class="imgBx">
+            <img src="/images/LoginImage.jpg" />
+        </div>
+        <div class="contentBx">
+            <div class="formBx">
+                <h2>Activate Account</h2>
+                <form>
+                    @if (_isAccountvalidation)
+                    {
+                        <div class="inputBx">
+                            <span>Account Number</span>
+                            <input type="text" @bind-value="accountNo" name="" />
+                        </div>
+                        <div class="inputBx"> 
+                            <input type="button" style="color:white; background-color:lightpink" value="Proceed" @onclick="PerformAccountValidation" name="" />
+                        </div>
+                    }
+                    
+                    @if (_isOTPValidation)
+                    {
+                        <div class="inputBx">
+                            <span>Enter OTP</span>
+                            <input type="text" @bind-value="otp" name="" />
+                        </div>
+                        <div class="inputBx">
+                            <input type="button" style="color:lightpink"   value="Validate" @onclick="ValidateOtp" name="" />
+
+                            <p>Enter 4 digit code sent to your email or phone number</p>
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
+
+
+
+
+@code {
+    private string accountNo = "";
+    private string otp = "";
+
+    private bool _isAccountvalidation = true;
+
+    private bool _isOTPValidation = false;
+
+    private async Task PerformAccountValidation()
+    {
+        try
+        {
+            await ValidateAccountNumber();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error performing account validation: {ex.Message}");
+        }
+    }
+
+    public async Task ValidateAccountNumber()
+    {
+        try
+        {
+
+            var validateaccount = await _accountService.GetAccountDetails(accountNo);
+
+            if (validateaccount.Success)
+            {
+                _isAccountvalidation = false;
+
+                Snackbar.Add("Account Validation Successful", Severity.Info);
+
+                _isOTPValidation = true;
+            }
+            else
+            {
+                _isAccountvalidation = true;
+
+                Snackbar.Add(validateaccount.Message, Severity.Error);
+            }
+        }
+        catch
+        {
+            
+        }
+
+    }
+
+    public void ValidateOtp()
+    {
+        Snackbar.Add("OTP Validation Successful", Severity.Info);
+
+        NavigationManager.NavigateTo($"/createpassword?accountNumber={accountNo}");
+    }
+}
