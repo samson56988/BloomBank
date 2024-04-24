@@ -9,7 +9,11 @@
 @inject ITokenService TokenService
 @inject IAccountService AccountService
 @inject IUserClaimsLocalStorageService _userClaimsStorageService
+@inject ITransferService TransferService;
+@inject ISnackbar Snackbar;
+@using Microsoft.AspNetCore.SignalR.Client
 @using System.Globalization
+@using CustomerPortal.Models.Request
 
 
 <html lang="en">
@@ -117,44 +121,85 @@
 
                 <!-- Transaction Table Section -->
                 <div class="transaction-table">
-                    <MudTable Items="@Elements" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<Transactions, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
-                        <ToolBarContent>
-                            <MudText Typo="Typo.h6">Transactions</MudText>
-                            <MudSpacer />
-                            <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-                        </ToolBarContent>
-                        <HeaderContent>
-                            <MudTh>Transaction Id</MudTh>
-                            <MudTh>Amount</MudTh>
-                            <MudTh>Transaction Date</MudTh>
-                            <MudTh>Beneficiary Bank</MudTh>
-                            <MudTh>Beneficiary Name</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd DataLabel="Transaction Id">@context.TranstiondId</MudTd>
+                    @if(TransactionRecords != null && TransactionRecords.Any())
+                    {
+                        <MudTable Items="@TransactionRecords" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<TransactionsRecord, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+                            <ToolBarContent>
+                                <MudText Typo="Typo.h6">Transactions</MudText>
+                                <MudSpacer />
+                                <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                            </ToolBarContent>
+                            <HeaderContent>
+                                <MudTh>Beneficiary Name</MudTh>
+                                <MudTh>Amount</MudTh>
+                                <MudTh>Transaction Date</MudTh>
+                                <MudTh>Entry Type</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Beneficiary Name">@context.BeneficiaryAccountName</MudTd>
                                 <MudTd DataLabel="Amount">@context.Amount</MudTd>
-                                <MudTd DataLabel="Transaction Date">@context.TransactionDate</MudTd>
-                                <MudTd DataLabel="Beneficiary Bank">@context.BeneficiaryBank</MudTd>
-                                <MudTd DataLabel="Beneficiary Name">@context.BeneficiaryName</MudTd>
+                                <MudTd DataLabel="Transaction Date">@FormatTransactionDate(@context.DateCreated)</MudTd>
+                                <MudTd DataLabel="Entry Type">
+                                    @if (@context.BeneficiaryAccountNo == DisplayAccountNo)
+                                    {
+                                        <p>Credit</p>
+                                    }
+                                    else
+                                    {
+                                        <p>Debit</p>
+                                    }
+                                </MudTd>
                             </RowTemplate>
                             <PagerContent>
                                 <MudTablePager />
                             </PagerContent>
                         </MudTable>
+                    }
+                    else
+                    {
+                        <div>
+                            @if (IsFetchingTransaction)
+                            {
+                                <p>Fetching Transactions.</p>
+                            }
+                            else
+                            {
+                                <p>No transactions found.</p>
+                            }
+
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Beneficiary Name</th>
+                                        <th>Amount</th>
+                                        <th>Transaction Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>N/A</td>
+                                        <td>N/A</td>
+                                        <td>N/A</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    
                     </div>
                 </div>
                 <div id="bankTransferDialog" class="dialog-container" style="display: none;">
                     <div class="dialog-content">
-                        @if (IsBankTransfer)
+                    @if (IsBankTransfer)
                     {
                         <h3>Bank Transfer</h3>
                         <div class="form-group">
                             <label for="accountNumber">Account Number</label>
-                            <input id="accountNumber" type="text" class="form-control" @bind="AccountNumber" />
+                            <input id="accountNumber" type="text" class="form-control" @bind="AccountNumber" @oninput="OnAccountNumberInput" maxlength="10" />
                         </div>
                         <div class="form-group">
                             <label for="accountName">Account Name</label>
-                            <input id="accountName" type="text" class="form-control" @bind="AccountName" />
+                            <input id="accountName" type="text" class="form-control" @bind="AccountName" disabled="@IsAccountNameDisabled" />
                         </div>
                         <div class="form-group">
                             <label for="transferAmount">Amount</label>
@@ -227,7 +272,7 @@
                     }
                 </div>
             </div>
-            @if (IsTransferring)
+            @if (IsTransferring || IsVerifyingAccountDetails)
             {
                 <div class="progress-container">
                     <div class="progress-indicator">
@@ -549,7 +594,9 @@
     private bool bordered = true;
     private bool striped = true;
     private string searchString1;
-    private Transactions selectedItem1;
+    private string TransactionType { get; set; }
+    private TransactionsRecord selectedItem1;
+    private bool IsFetchingTransaction { get; set; }
 
     private string AccountNumber { get; set; }
     private string AccountName { get; set; }
@@ -562,12 +609,15 @@
     private bool IsCardRequest = false;
     private bool IsBillsPayment = false;
     private bool IsTransferring = false;
+    private bool IsVerifyingAccountDetails = false;
 
 
     public string DisplayAccountName { get; set; }
     public decimal DisplayAccountBalance { get; set; }
     public string DisplayAccountNo { get; set; }
     public string DisplayAccountType { get; set; }
+    private HubConnection hubConnection;
+
 
 
     private async Task Logout()
@@ -577,18 +627,13 @@
         Navigation.NavigateTo("/login"); 
     }
 
-    private List<Transactions> Elements { get; set; }
+    private List<TransactionsRecord> TransactionRecords { get; set; }
 
     protected async override void OnInitialized()
     {
-        
-        IsTransferring = false;
 
-        Elements = new List<Transactions>
-        {
-            new Transactions { TranstiondId = 1, TransactionDate = "1 January 2024", Amount = "200000", BeneficiaryBank = "First Bank", BeneficiaryName = "Ajayi Samson" },
-            new Transactions { TranstiondId = 2, TransactionDate = "2 January 2024", Amount = "400000", BeneficiaryBank = "Sterling Bank", BeneficiaryName = "Ajayi Samson" },
-        };
+        IsTransferring = false;
+        IsFetchingTransaction = true;
 
         var getaccountRecords = await _userClaimsStorageService.GetAccountInfoAsync();
 
@@ -602,6 +647,15 @@
             DisplayAccountName = getaccountRecords.AccountName;
             DisplayAccountNo = getaccountRecords.AccountNo;
             DisplayAccountType = getaccountRecords.AccountType;
+
+
+            var transactions = await TransferService.TransactionHistory(DisplayAccountNo);
+
+            if (transactions.Success)
+            {
+                TransactionRecords = transactions.Data;
+                IsFetchingTransaction = false;
+            }
         }
 
         if (!await TokenService.TokenExistsAsync())
@@ -609,23 +663,27 @@
             Navigation.NavigateTo("/login");
         }
 
+        IsFetchingTransaction = false;
         StateHasChanged();
     }
+
+
 
     public async Task GetCustomerProfile()
     {
         var accountprofile = await AccountService.GetAccountDetails(AccountNumber);
     }
 
-    private bool FilterFunc1(Transactions element)
+    private bool FilterFunc1(TransactionsRecord element)
     {
         // Implement your custom filtering logic based on the search string
         if (string.IsNullOrEmpty(searchString1))
             return true;
 
-        return element.Amount?.Contains(searchString1, StringComparison.OrdinalIgnoreCase) == true
-            || element.BeneficiaryName?.Contains(searchString1, StringComparison.OrdinalIgnoreCase) == true;
+        return element.TransactionRef?.Contains(searchString1, StringComparison.OrdinalIgnoreCase) == true
+            || element.BeneficiaryAccountName?.Contains(searchString1, StringComparison.OrdinalIgnoreCase) == true;
     }
+
 
     public class Transactions
     {
@@ -686,19 +744,158 @@
 
     private async Task ProcessTransfer()
     {
-        CloseBankTransferDialog();
-        // Show progress indicator
         IsTransferring = true;
 
-        // Simulate transfer process (e.g., HTTP request, backend operation)
-        await Task.Delay(3000); // Placeholder for asynchronous operation
+        var getaccountRecords = await _userClaimsStorageService.GetAccountInfoAsync();
 
-        // After completion, hide progress indicator and close dialog
-        IsTransferring = false;
-        CloseBankTransferDialog();
+        if(getaccountRecords == null)
+        {
+            Snackbar.Add("Error occured while processing request", Severity.Error);
+        }
+
+        BankTransferRequest bankTransfer = new BankTransferRequest();
+        bankTransfer.TransactionReference = GenerateTransactionId();
+        bankTransfer.SenderName = getaccountRecords.AccountName;
+        bankTransfer.SenderAccountNumber = getaccountRecords.AccountNo;
+        bankTransfer.PayeeAccountNumber = AccountNumber;
+        bankTransfer.PayeeName = AccountName;
+        bankTransfer.Amount =   Convert.ToString(TransferAmount);
+        bankTransfer.Platform = "Mobile";
+        bankTransfer.Narration = $"Bank Transfer From {bankTransfer.SenderName} to {bankTransfer.PayeeName}";
+
+        try
+        {
+            var transfer = await TransferService.BankTransfer(bankTransfer);
+
+            if (transfer.Success)
+            {
+                Snackbar.Add(transfer.Message, Severity.Info);
+
+                CloseBankTransferDialog();
+
+                IsTransferring = false;
+            }
+            else
+            {
+                Snackbar.Add(transfer.Message, Severity.Error);
+
+                CloseBankTransferDialog();
+
+                IsTransferring = false;
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Transfer Failed", Severity.Error);
+        }
+
+
+    }
+
+    string FormatTransactionDate(DateTime date)
+    {
+        return $"{date.Day}{GetOrdinalSuffix(date.Day)} {date:MMMM yyyy}";
+    }
+
+    string GetOrdinalSuffix(int day)
+    {
+        if (day >= 11 && day <= 13)
+        {
+            return "th";
+        }
+
+        switch (day % 10)
+        {
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
+        }
+    }
+
+    private async void InitializeSignalRConnection(string accountId)
+    {
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl("/", options =>
+        {
+            options.AccessTokenProvider = () => Task.FromResult(accountId);
+        }).Build();
+
+        hubConnection.On<TransferResponse>("ReceiveBankTransferUpdate", async (transfer) =>
+       {
+           Console.WriteLine($"Received bank transfer update: {transfer}");
+           // You can update UI, invoke other methods, etc. based on the received data
+       });
+
+        try
+        {
+            await hubConnection.StartAsync();
+            Console.WriteLine("SignalR connection established.");
+        }
+        catch
+        {
+            Console.WriteLine("Error occured while fetching request");
+        }
+    }
+
+    public static string GenerateTransactionId()
+    {
+        string dateTime = DateTime.UtcNow.ToString("yyMMddHHmmss");
+        string uniqueNumber = GenerateUniqueNumber();
+        string transactionId = $"BloomBank{dateTime}{uniqueNumber}";
+        return transactionId;
+    }
+
+    private static string GenerateUniqueNumber()
+    {
+        Random random = new Random();
+        int randomNumber = random.Next(0, 99999999);
+        string uniqueNumber = randomNumber.ToString().PadLeft(12, '0');
+        return uniqueNumber;
     }
 
 
+    private bool IsAccountNameDisabled { get; set; } = true;
+    private bool IsTransferDisabled { get; set; } = true;
+
+    private async void OnAccountNumberInput(ChangeEventArgs args)
+    {
+        AccountNumber = args.Value.ToString();
+
+        // Enable/disable AccountName input based on AccountNumber length
+        IsAccountNameDisabled = AccountNumber.Length != 10;
+
+        // Enable/disable Transfer button based on input validation
+        IsTransferDisabled = AccountNumber.Length != 10 || string.IsNullOrWhiteSpace(AccountName);
+
+        // Call account verification endpoint if AccountNumber has 10 characters
+        if (AccountNumber.Length == 10)
+        {
+            try
+            {
+                IsVerifyingAccountDetails = true;
+
+                var accountNumber = await AccountService.GetAccountDetails(AccountNumber);
+
+                AccountName = accountNumber.Data.AccountName;
+
+                IsVerifyingAccountDetails = false;
+
+                StateHasChanged();
+            }
+            catch
+            {
+                Snackbar.Add("Account does not exist", Severity.Error);
+
+                IsVerifyingAccountDetails = false;
+
+                AccountNumber = null;
+
+                StateHasChanged();
+            }
+        }
+
+    }
 
     private async void OpenBankTransferDialog()
     {

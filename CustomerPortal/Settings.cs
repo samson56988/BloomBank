@@ -9,5 +9,9 @@
         public const string ValidateAccountNumber = "api/Account/GetAccountDetail?accountId=";
 
         public const string CustomerLogin = "api/Auth/Login";
+
+        public const string BankTransfer = "api/Transfer/Transfer";
+
+        public const string BankTransferHistory = "api/Transfer/TransactionHistory?account=";
     }
 }

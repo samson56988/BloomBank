@@ -17,7 +17,4 @@
         public string PlatForm { get; set; }    
         public decimal Amount { get; set; }
     }
-
-
-   
 }

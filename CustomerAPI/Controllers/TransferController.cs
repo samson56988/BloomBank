@@ -48,5 +48,28 @@ namespace CustomerAPI.Controllers
                 return BadRequest();
             }
         }
+
+        [HttpGet("TransactionHistory")]
+        public async Task<IActionResult> TransactionHistory(string account)
+        {
+            if (account != null)
+            {
+                var response = await _transferService.CustomerBankTransfers(account,100);
+                if (response.Item2 == "success")
+                {
+                    return Ok(response.Item1);
+                }
+                else
+                {
+                    return BadRequest(response.Item1);
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+
     }
 }

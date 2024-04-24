@@ -10,6 +10,7 @@ namespace DataBase.Models
     {
         public string AccountNo { get; set; }
         public string AccountName { get; set; }
+        public decimal Amount { get; set; }
         public string TransactionRef {  get; set; }
         public string BeneficiaryAccountNo { get; set; }
         public string BeneficiaryAccountName { get; set; }

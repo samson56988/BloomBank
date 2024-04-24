@@ -1,6 +1,7 @@
 using CustomerPortal;
 using CustomerPortal.Account;
 using CustomerPortal.Helpers;
+using CustomerPortal.Transfer;
 using Library.Security;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -12,6 +13,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddTransient<IAccountService,AccountService>();
+builder.Services.AddTransient<ITransferService,TransferService>();
 builder.Services.AddScoped<ITokenService, TokenService>();    
 builder.Services.AddScoped<IUserClaimsLocalStorageService, UserClaimsLocalStorageService>();
 

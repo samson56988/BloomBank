@@ -118,7 +118,7 @@ namespace RabbitMQConsumer
                         }
                         else
                         {
-                            response.Status = "success";
+                            response.Status = "failed";
                             response.ApiResponse = null;
                             response.AccountNumber = transferDetail.SenderAccountNumber;
                             response.TransactionRef = transferDetail.TransactionReference;

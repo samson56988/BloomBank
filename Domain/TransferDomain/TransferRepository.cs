@@ -54,10 +54,12 @@ namespace Domain.TransferDomain
         {
             try
             {
-                var transfers = await _bankTransferRepository.GetListAsync(x => x.AccountNo == accountNo);
+                var transfers = await _bankTransferRepository.GetListAsync(
+                predicate: x => x.AccountNo == accountNo || x.BeneficiaryAccountNo == accountNo,
+                size: length,
+                orderByDescending: x => x.DateCreated);
 
                 var transferList = transfers.ToList();
-
                 return transferList;
             }
             catch

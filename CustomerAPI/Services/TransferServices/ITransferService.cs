@@ -8,5 +8,7 @@ namespace CustomerAPI.Services.TransferServices
         Task<Tuple<object, string>> TransferRequest(TransferRequest request);
 
         Task<Tuple<object, string>> BankTransferResponse(BankTransferApiResponse response);
+
+        Task<Tuple<object, string>> CustomerBankTransfers(string accountNo, int size);
     }
 }

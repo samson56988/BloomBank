@@ -16,7 +16,7 @@ namespace MiddleWareDomain.Models
         public string Country { get; set; }
         public string Phone { get; set; }
         public string BVN { get; set; }
-        public string AccountType { get; set; } // e.g., Current, Savings, Foreign
+        public string AccountType { get; set; } 
         public string IdentificationType { get; set; }
         public string IdentificationNumber { get; set; }
         public decimal TransactionLimit { get; set; }
@@ -25,7 +25,7 @@ namespace MiddleWareDomain.Models
         public string CifNo { get; set; }
         public DateTime DateOfBirth { get; set; }
         public bool HasPND { get; set; }
-        public string CurrencyCode { get; set; } // ISO currency code (e.g., NGN for Naira, USD for US Dollar)
+        public string CurrencyCode { get; set; } 
         public string AccountName { get; set; }
     }
 

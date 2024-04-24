@@ -16,19 +16,20 @@ namespace CustomerAPI.Services.AuthenticationServices
         private readonly IEncryptionService _encryptionService;
         private readonly IAccountService _aacountService;
         private readonly UserTokenGenerator _userToken;
-
+        private readonly IHttpContextAccessor _contextAccessor;
         private readonly IMapper _mapper;
         ServiceResponse res = new ServiceResponse();
         string message = "";
         string error = "";
 
-        public AuthenticationService(ICustomerRepository repository,IEncryptionService encryptionService,IAccountService accountService,UserTokenGenerator userTokenGenerator,IMapper mapper) 
+        public AuthenticationService(ICustomerRepository repository,IEncryptionService encryptionService,IAccountService accountService,UserTokenGenerator userTokenGenerator,IMapper mapper,IHttpContextAccessor httpContextAccessor) 
         { 
             _customerRepository = repository; 
             _encryptionService = encryptionService;
             _aacountService = accountService;
             _userToken = userTokenGenerator;
             _mapper = mapper;
+            _contextAccessor = httpContextAccessor;
         }
 
         public async Task<Tuple<object, string>> CreateLoginDetails(CreateLoginDetails auth)

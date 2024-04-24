@@ -1,6 +1,7 @@
 using ApiCaller;
 using CustomerAPI.ApiServices;
 using CustomerAPI.Helpers;
+using CustomerAPI.HubService;
 using CustomerAPI.Mapper;
 using CustomerAPI.NewFolder;
 using CustomerAPI.Services;
@@ -57,10 +58,11 @@ builder.Services.AddScoped<IModel>(provider =>
     var connection = connectionFactory.CreateConnection();
     return connection.CreateModel();
 });
+builder.Services.AddSignalR();
+builder.Services.AddHttpContextAccessor();
 
 
 builder.Services.AddHostedService<RabbitMQConsumerService>();
-
 
 builder.Services.AddDbContext<BloomDatabaseContext>(options =>
 {
@@ -142,6 +144,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapHub<BankTransferHub>("/chatHub");
 
 app.UseCors("AllowAllOrigins");
 

@@ -66,9 +66,31 @@ namespace Domain.RepositoryDomain
             await _dbContext.SaveChangesAsync();
         }
 
+
+        public async Task<IEnumerable<TEntity>> GetListAsync(Expression<Func<TEntity, bool>> predicate, int size)
+        {
+            return await _dbContext.Set<TEntity>()
+                .Where(predicate)
+                .Take(size) 
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<TEntity>> GetListAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await _dbContext.Set<TEntity>().Where(predicate).ToListAsync();
+            return await _dbContext.Set<TEntity>()
+                .Where(predicate)
+                .ToListAsync();
         }
+
+        public async Task<IEnumerable<TEntity>> GetListAsync(Expression<Func<TEntity, bool>> predicate, int size, Expression<Func<TEntity, DateTime>> orderByDescending)
+        {
+            return await _dbContext.Set<TEntity>()
+                .Where(predicate)
+                .OrderByDescending(orderByDescending)
+                .Take(size)
+                .ToListAsync();
+        }
+
+
     }
 }
